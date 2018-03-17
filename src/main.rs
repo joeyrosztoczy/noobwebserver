@@ -4,6 +4,8 @@ use std::io::prelude::*;
 use std::net::TcpListener;
 // TcpStream is a struct representing a TcpStream that can be read from and written too
 use std::net::TcpStream;
+use std::fs::File;
+
 // Convenience port (80x2 for http)
 const PORT: i32 = 8080;
 
@@ -30,9 +32,15 @@ fn handle_connection(mut stream: TcpStream) {
 
     stream.read(&mut buffer).unwrap();
     println!("Stream: {}", String::from_utf8_lossy(&buffer[..]));
+
+    // Open up our html file
+    let mut file = File::open("hello.html").unwrap();
+    let mut contents = String::new();
+    file.read_to_string(&mut contents).unwrap();
     // Follow HTTP response protocol HTTP/version status-code reason-txt no header no body
-    let response = "HTTP/1.1 200 OK\r\n\r\n";
+    let response = format!("HTTP/1.1 200 OK\r\n\r\n{}", contents);
     // Convert response to a utf8 slice and write to the stream, write returns a Result, so we
     // unwrap
     stream.write(response.as_bytes()).unwrap();
+    stream.flush().unwrap();
 }
