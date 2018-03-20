@@ -12,7 +12,8 @@ use std::time::Duration;
 use std::thread;
 
 // Convenience port (80x2 for http)
-const PORT: i32 = 8080;
+const PORT: u32 = 8080;
+const WORKER_LIMIT: usize = 4;
 
 fn main() {
     let address = format!("127.0.0.1:{}", PORT);
@@ -21,7 +22,9 @@ fn main() {
     let listener =
         TcpListener::bind(address).expect(&format!("Oops, port {} is already in use!", &PORT));
 
-    let pool = ThreadPool::new(4);
+    // Creates a threadpool with WORKER_LIMIT workers, aka threads waiting for jobs sent over an
+    // mpsc channel
+    let pool = ThreadPool::new(WORKER_LIMIT);
 
     // Can ue the TcpListener accept method or iterate on incoming data with .incoming()
     for stream in listener.incoming() {
